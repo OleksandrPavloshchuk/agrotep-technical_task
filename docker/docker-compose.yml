@@ -1,0 +1,17 @@
+version: '2'
+
+services:
+  mysql:
+    image: mysql/mysql-server
+    volumes:
+      - '~/dev/dbs-data/mysql:/var/lib/mysql'
+    restart: 'always'
+    expose:
+      - 3306
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 'password'
+      MYSQL_DATABASE: 'db'
+      MYSQL_USER: 'user'
+      MYSQL_PASSWORD: 'pass'
