@@ -43,8 +43,7 @@ public class SecurityConfiguration {
     httpSecurity
         .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
             .requestMatchers("/fish/create")
-            .hasAuthority("ROLE_ADMIN")
-        )
+            .hasAuthority("ROLE_ADMIN"))
         .authorizeHttpRequests( authorizeHttpRequests -> authorizeHttpRequests
             .anyRequest()
             .authenticated())
