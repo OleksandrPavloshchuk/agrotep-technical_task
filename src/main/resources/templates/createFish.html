@@ -1,5 +1,9 @@
 <!doctype html>
-<html lang="en">
+<html
+		lang="en"
+		xmlns="http://www.w3.org/1999/xhtml"
+		xmlns:th="https://www.thymeleaf.org"
+		xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -13,6 +17,8 @@
 <body>
 
 	<div class="container">
+		<div th:replace="fragments/pageHeader"></div>
+
 		<div class="row">
 			<div class="col-md-8 mx-auto rounded border p-4 m-4">
 				<h2 class="text-center mb-5">Нова рибка</h2>
@@ -50,10 +56,12 @@
 
 					<div class="row mb-3">
 						<div class="offset-sm-4 col-sm-4 d-grid">
-							<button type="submit" class="btn btn-primary">Створити</button>
+							<button sec:authorize="hasRole('ROLE_ADMIN')"
+											type="submit" class="btn btn-primary">Створити</button>
 							 </div>
 							<div class="col-sm-4 d-grid">
-								<button type="button" class="btn btn-outline-primary"
+								<button sec:authorize="hasRole('ROLE_ADMIN')"
+										type="button" class="btn btn-outline-primary"
 									onclick="window.location.href='/fish'">Скасувати</button>
 							</div>
 						</div>

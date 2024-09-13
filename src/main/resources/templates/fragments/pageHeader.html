@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<div lang="en"
+     xmlns="http://www.w3.org/1999/xhtml"
+     xmlns:th="https://www.thymeleaf.org"
+     class="row">
+  <div class="col-sm-9"></div>
+  <div class="col-sm-1" th:text="${#authentication.principal.username}"></div>
+  <div class="col-sm-2 rounded border">
+    <a class="btn btn-default" href="/login?logout">Вийти із застосунку</a>
+  </div>
+</div>

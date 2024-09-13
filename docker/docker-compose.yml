@@ -3,6 +3,7 @@ version: '2'
 services:
   mysql:
     image: mysql/mysql-server
+    container_name: mysql1
     volumes:
       - '~/dev/dbs-data/mysql:/var/lib/mysql'
     restart: 'always'
