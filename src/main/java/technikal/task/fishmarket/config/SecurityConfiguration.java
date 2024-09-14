@@ -2,7 +2,6 @@ package technikal.task.fishmarket.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -35,22 +34,24 @@ public class SecurityConfiguration {
         .roles("USER")
         .build();
 
-    return new InMemoryUserDetailsManager( adminUserDetails, userUserDetails);
+    return new InMemoryUserDetailsManager(adminUserDetails, userUserDetails);
   }
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
     httpSecurity
-        .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-            .requestMatchers("/fish/create")
-            .hasAuthority("ROLE_ADMIN"))
-        .authorizeHttpRequests( authorizeHttpRequests -> authorizeHttpRequests
-            .anyRequest()
-            .authenticated())
+        .csrf(csrf ->
+            csrf.disable())
+        .authorizeHttpRequests(a -> {
+          a.requestMatchers("/resources/**").permitAll();
+          a.requestMatchers("/fish/create").hasAuthority("ROLE_ADMIN");
+          a.requestMatchers("/fish/delete/**").hasAuthority("ROLE_ADMIN");
+          a.anyRequest().authenticated();
+        })
         .formLogin(formLogin -> formLogin
             .loginPage("/login")
             .permitAll())
-        .logout( logout -> logout
+        .logout(logout -> logout
             .logoutUrl("/login?logout")
             .invalidateHttpSession(true));
     return httpSecurity.build();

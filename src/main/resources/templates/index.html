@@ -36,7 +36,7 @@
   <h1 class="text-center my-4">Рибка на продаж</h1>
 
   <a sec:authorize="hasRole('ROLE_ADMIN')"
-      class="btn btn-success" href="/fish/create">Додати рибки</a>
+     class="btn btn-success" href="/fish/create">Додати рибки</a>
 
   <table class="table">
     <thead>
@@ -61,7 +61,8 @@
         </div>
       </td>
       <td>
-        <a class="btn btn-danger btn-sm" th:href="@{/fish/delete(id=${fish.id})}"
+        <a sec:authorize="hasRole('ROLE_ADMIN')"
+           class="btn btn-danger btn-sm" th:href="@{/fish/delete(id=${fish.id})}"
            onclick="return confirm('Ви впевнені?')">Прибрати</a>
       </td>
     </tr>
