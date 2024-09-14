@@ -1,9 +1,8 @@
 package technikal.task.fishmarket.models;
 
-import org.springframework.web.multipart.MultipartFile;
-
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
+import org.springframework.web.multipart.MultipartFile;
 
 public class FishDto {
 	
@@ -26,6 +25,7 @@ public class FishDto {
 	public void setPrice(double price) {
 		this.price = price;
 	}
+	// If we create fish, we add the 1st fish image:
 	public MultipartFile getImageFile() {
 		return imageFile;
 	}

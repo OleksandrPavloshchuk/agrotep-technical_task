@@ -47,6 +47,7 @@
       <th>Дата вилову</th>
       <th>Фото</th>
       <th></th>
+      <th></th>
     </tr>
     </thead>
     <tbody>
@@ -56,9 +57,14 @@
       <td th:text="${fish.price} + '₴'"></td>
       <td th:text="${fish.catchDate.toString().substring(0,10)}"></td>
       <td>
-        <div class="image-container">
-          <img th:src="@{'images/'+${fish.imageFileName}}" alt="..." width="100">
-        </div>
+        <th:block th:each="picture : ${fish.picture}">
+          <div class="image-container">
+            <img th:src="@{'images/'+${picture.imageFileName}}" alt="..." width="100">
+          </div>
+        </th:block>
+      </td>
+      <td>
+        TODO: добавити фото риби
       </td>
       <td>
         <a sec:authorize="hasRole('ROLE_ADMIN')"

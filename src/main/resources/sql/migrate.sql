@@ -1,9 +1,13 @@
 CREATE TABLE `fish_picture`
 (
+    `id`              int    NOT NULL AUTO_INCREMENT,
     `image_file_name` varchar(255) NOT NULL,
-    `fish_id` int NOT NULL,
-    PRIMARY KEY (`fish_id`, `image_file_name`)
+    `fish_id`         int NOT NULL,
+    PRIMARY KEY (`id`)
 );
+
+ALTER TABLE `fish_picture`
+    ADD INDEX `fish_and_file`(`fish_id`, `image_file_name`);
 
 ALTER TABLE `fish_picture`
     ADD FOREIGN KEY `to_fish`(`fish_id`)

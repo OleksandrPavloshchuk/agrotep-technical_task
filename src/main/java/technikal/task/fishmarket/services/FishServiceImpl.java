@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import technikal.task.fishmarket.models.Fish;
 import technikal.task.fishmarket.models.FishDto;
+import technikal.task.fishmarket.models.FishPicture;
 
 @Service
 public class FishServiceImpl implements FishService {
@@ -27,39 +29,51 @@ public class FishServiceImpl implements FishService {
   @Value("${files.upload.dir}")
   private String filesUploadDir;
 
-  private final FishRepository repo;
+  private final FishRepository fishRepo;
+
+  private final FishPictureRepository fishPictureRepo;
 
   @Autowired
-  public FishServiceImpl(FishRepository repo) {
-    this.repo = repo;
+  public FishServiceImpl(FishRepository fishRepo, FishPictureRepository fishPictureRepo) {
+    this.fishRepo = fishRepo;
+    this.fishPictureRepo = fishPictureRepo;
   }
 
   @Override
   public List<Fish> getFishList() {
-    return repo.findAll(Sort.by(Sort.Direction.DESC, "id"));
+    return fishRepo.findAll(Sort.by(Sort.Direction.DESC, "id"));
   }
 
   @Override
   public void deleteFish(int fishId) {
-    repo.findById(fishId).ifPresent(fish -> {
-      deleteFile(fish.getImageFileName());
-      repo.delete(fish);
+    fishRepo.findById(fishId).ifPresent(fish -> {
+      deleteFishPictures(fish);
+      fishRepo.delete(fish);
     });
   }
 
   @Override
   public void addFish(FishDto fishDto) {
     final Date catchDate = new Date();
-    saveFile(fishDto.getImageFile(), catchDate).ifPresent( storageFileName -> {
+    saveFile(fishDto.getImageFile(), catchDate).ifPresent(storedFileName -> {
+      // We save only the 1st fish image while creation:
       Fish fish = new Fish();
-
       fish.setCatchDate(catchDate);
-      fish.setImageFileName(storageFileName);
       fish.setName(fishDto.getName());
       fish.setPrice(fishDto.getPrice());
+      fish = fishRepo.save(fish);
 
-      repo.save(fish);
+      // Save the 1st fish picture:
+      FishPicture fishPicture = createFishPicture(fish, storedFileName);
+      fishPictureRepo.save(fishPicture);
     });
+  }
+
+  private FishPicture createFishPicture(Fish fish, String fileName) {
+    FishPicture result = new FishPicture();
+    result.setFish(fish);
+    result.setImageFileName(fileName);
+    return result;
   }
 
   // TODO create special service for file processing
@@ -83,6 +97,12 @@ public class FishServiceImpl implements FishService {
     }
 
     return Optional.of(storageFileName);
+  }
+
+  private void deleteFishPictures(Fish fish) {
+    fish.getPicture().forEach(
+        fishPicture -> deleteFile(fishPicture.getImageFileName())
+    );
   }
 
   private void deleteFile(String imageFileName) {
