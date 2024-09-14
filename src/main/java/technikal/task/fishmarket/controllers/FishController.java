@@ -26,7 +26,7 @@ public class FishController {
   @Autowired
   private FishService fishService;
 
-  @GetMapping({"", "/"})
+  @GetMapping
   public String showFishList(Model model) {
     model.addAttribute("fishlist", fishService.getFishList());
     return FISH_LIST;

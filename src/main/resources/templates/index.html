@@ -31,7 +31,7 @@
 </head>
 <body>
 <div class="container">
-  <div th:replace="fragments/pageHeader"></div>
+  <div th:replace="~{fragments/pageHeader}"></div>
 
   <h1 class="text-center my-4">Рибка на продаж</h1>
 
@@ -57,7 +57,7 @@
       <td th:text="${fish.catchDate.toString().substring(0,10)}"></td>
       <td>
         <div class="image-container">
-          <img th:src="@{'/images/'+${fish.imageFileName}}" alt="..." width="100">
+          <img th:src="@{'images/'+${fish.imageFileName}}" alt="..." width="100">
         </div>
       </td>
       <td>
