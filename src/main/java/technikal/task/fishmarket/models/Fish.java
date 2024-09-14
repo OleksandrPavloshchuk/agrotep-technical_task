@@ -24,7 +24,7 @@ public class Fish {
   private Date catchDate;
 
   @OneToMany(mappedBy = "fish")
-  private List<FishPicture> picture;
+  private List<FishPicture> pictures;
 
   public int getId() {
     return id;
@@ -58,11 +58,11 @@ public class Fish {
     this.catchDate = catchDate;
   }
 
-  public List<FishPicture> getPicture() {
-    return picture;
+  public List<FishPicture> getPictures() {
+    return pictures;
   }
 
-  public void setPicture(List<FishPicture> pictures) {
-    this.picture = picture;
+  public void setPictures(List<FishPicture> pictures) {
+    this.pictures = pictures;
   }
 }

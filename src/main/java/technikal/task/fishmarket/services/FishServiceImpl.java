@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -48,7 +47,7 @@ public class FishServiceImpl implements FishService {
   public void deleteFish(int fishId) {
     fishRepo.findById(fishId).ifPresent(fish -> {
       deleteFishPictures(fish);
-      fish.getPicture().forEach(pic ->
+      fish.getPictures().forEach(pic ->
           fishPictureRepo.delete(pic));
       fishRepo.delete(fish);
     });
@@ -102,7 +101,7 @@ public class FishServiceImpl implements FishService {
   }
 
   private void deleteFishPictures(Fish fish) {
-    fish.getPicture().forEach(
+    fish.getPictures().forEach(
         fishPicture -> deleteFile(fishPicture.getImageFileName())
     );
   }
