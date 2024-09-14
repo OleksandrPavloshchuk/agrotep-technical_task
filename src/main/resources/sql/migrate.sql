@@ -13,3 +13,6 @@ ALTER TABLE `fish_picture`
 
 INSERT INTO `fish_picture`(`fish_id`, `image_file_name`)
 SELECT `id`, `image_file_name` FROM fish;
+
+ALTER TABLE `fish`
+DROP COLUMN `image_file_name`;
