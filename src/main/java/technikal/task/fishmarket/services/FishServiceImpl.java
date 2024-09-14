@@ -48,6 +48,8 @@ public class FishServiceImpl implements FishService {
   public void deleteFish(int fishId) {
     fishRepo.findById(fishId).ifPresent(fish -> {
       deleteFishPictures(fish);
+      fish.getPicture().forEach(pic ->
+          fishPictureRepo.delete(pic));
       fishRepo.delete(fish);
     });
   }
