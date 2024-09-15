@@ -1,21 +1,11 @@
 package technikal.task.fishmarket.services;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import technikal.task.fishmarket.models.Fish;
 import technikal.task.fishmarket.models.FishDto;
 import technikal.task.fishmarket.models.FishPicture;
@@ -24,19 +14,20 @@ import technikal.task.fishmarket.models.FishPictureDto;
 @Service
 public class FishServiceImpl implements FishService {
 
-  private static final Logger LOGGER = Logger.getAnonymousLogger();
-
-  @Value("${files.upload.dir}")
-  private String filesUploadDir;
-
   private final FishRepository fishRepo;
 
   private final FishPictureRepository fishPictureRepo;
 
+  private final ImageStorageService imageStorageService;
+
   @Autowired
-  public FishServiceImpl(FishRepository fishRepo, FishPictureRepository fishPictureRepo) {
+  public FishServiceImpl(
+      FishRepository fishRepo,
+      FishPictureRepository fishPictureRepo,
+      ImageStorageService imageStorageService) {
     this.fishRepo = fishRepo;
     this.fishPictureRepo = fishPictureRepo;
+    this.imageStorageService = imageStorageService;
   }
 
   @Override
@@ -56,7 +47,7 @@ public class FishServiceImpl implements FishService {
   @Override
   public void addFish(FishDto fishDto) {
     final Date catchDate = new Date();
-    saveFile(fishDto.getImageFile(), catchDate).ifPresent(storedFileName -> {
+    imageStorageService.saveImage(fishDto.getImageFile(), catchDate).ifPresent(storedFileName -> {
       // We save only the 1st fish image while creation:
       Fish fish = new Fish();
       fish.setCatchDate(catchDate);
@@ -77,12 +68,11 @@ public class FishServiceImpl implements FishService {
 
   @Override
   public void addFishPicture(FishPictureDto fishPictureDto) {
-    saveFile(fishPictureDto.getImageFile(), new Date()).ifPresent(storedFileName -> {
-      findFishById(fishPictureDto.getFishId()).ifPresent(fish -> {
-        FishPicture fishPicture = createFishPicture(fish, storedFileName);
-        fishPictureRepo.save(fishPicture);
-      });
-    });
+    imageStorageService.saveImage(fishPictureDto.getImageFile(), new Date())
+        .ifPresent(storedFileName -> findFishById(fishPictureDto.getFishId())
+            .ifPresent(fish ->
+                fishPictureRepo.save(createFishPicture(fish, storedFileName))
+            ));
   }
 
   private FishPicture createFishPicture(Fish fish, String fileName) {
@@ -92,42 +82,10 @@ public class FishServiceImpl implements FishService {
     return result;
   }
 
-  // TODO create special service for file processing
-
-  private Optional<String> saveFile(MultipartFile image, Date catchDate) {
-    String storageFileName = catchDate.getTime() + "_" + image.getOriginalFilename();
-    Path uploadPath = Paths.get(filesUploadDir);
-
-    try {
-      if (!Files.exists(uploadPath)) {
-        Files.createDirectories(uploadPath);
-      }
-
-      try (InputStream inputStream = image.getInputStream()) {
-        Files.copy(inputStream, Paths.get(filesUploadDir + "/" + storageFileName),
-            StandardCopyOption.REPLACE_EXISTING);
-      }
-    } catch (IOException ex) {
-      LOGGER.log(Level.SEVERE, "can't save file: {}", storageFileName);
-      return Optional.empty();
-    }
-
-    return Optional.of(storageFileName);
-  }
-
   private void deleteFishPictures(Fish fish) {
     fish.getPictures().forEach(
-        fishPicture -> deleteFile(fishPicture.getImageFileName())
+        fishPicture -> imageStorageService.deleteImage(fishPicture.getImageFileName())
     );
-  }
-
-  private void deleteFile(String imageFileName) {
-    try {
-      Path imagePath = Paths.get(filesUploadDir + "/" + imageFileName);
-      Files.delete(imagePath);
-    } catch (IOException ex) {
-      LOGGER.log(Level.SEVERE, "can't delete file: {}", imageFileName);
-    }
   }
 
 }
