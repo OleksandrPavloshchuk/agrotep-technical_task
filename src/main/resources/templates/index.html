@@ -39,12 +39,14 @@
         </th:block>
       </td>
       <td>
-        TODO: добавити фото риби
+        <a sec:authorize="hasRole('ROLE_ADMIN')"
+           class="btn btn-primary btn-sm" th:href="@{/fish/addPicture(fishId=${fish.id})}"
+           >Добавити картинку</a>
       </td>
       <td>
         <a sec:authorize="hasRole('ROLE_ADMIN')"
            class="btn btn-danger btn-sm" th:href="@{/fish/delete(id=${fish.id})}"
-           onclick="return confirm('Ви впевнені?')">Прибрати</a>
+           onclick="return confirm('Ви впевнені?')">Прибрати рибу</a>
       </td>
     </tr>
     </tbody>

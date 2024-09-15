@@ -44,6 +44,7 @@ public class SecurityConfiguration {
             csrf.disable())
         .authorizeHttpRequests(a -> {
           a.requestMatchers("/resources/**").permitAll();
+          a.requestMatchers("/fish/addPicture").hasAuthority("ROLE_ADMIN");
           a.requestMatchers("/fish/create").hasAuthority("ROLE_ADMIN");
           a.requestMatchers("/fish/delete/**").hasAuthority("ROLE_ADMIN");
           a.anyRequest().authenticated();

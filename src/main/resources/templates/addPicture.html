@@ -1,0 +1,56 @@
+<!doctype html>
+<html
+		lang="en"
+		xmlns="http://www.w3.org/1999/xhtml"
+		xmlns:th="https://www.thymeleaf.org"
+		xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<div th:replace="~{fragments/styles}"></div>
+<body>
+
+	<div class="container">
+		<div th:replace="~{fragments/pageHeader}"></div>
+
+		<div class="row">
+			<div class="col-md-8 mx-auto rounded border p-4 m-4">
+				<h2 class="text-center mb-5">Нова картинка рибки</h2>
+				<form method="post" enctype="multipart/form-data"
+					th:object="${fishPictureDto}">
+
+					<input type="hidden" name="fishId" th:value="${fishPictureDto.fishId}" />
+
+					<div class="row mb-3">
+						<lebel class="col-sm-4 col-form-label">Назва</lebel>
+						<div class="col-sm-8">
+							<input class="form-control" disabled="true" th:field="${fishPictureDto.fishName}">
+						</div>
+					</div>
+
+					<div class="row mb-3">
+						<lebel class="col-sm-4 col-form-label">Фото</lebel>
+						<div class="col-sm-8">
+							<input class="form-control" type="file" step="0.01" min="0"
+								th:field="${fishPictureDto.imageFile}">
+							<p th:if="${#fields.hasErrors('imageFile')}"
+								th:errorclass="text-danger" th:errors="${fishPictureDto.imageFile}"></p>
+						</div>
+					</div>
+
+					<div class="row mb-3">
+						<div class="offset-sm-4 col-sm-4 d-grid">
+							<button sec:authorize="hasRole('ROLE_ADMIN')"
+											type="submit" class="btn btn-primary">Створити</button>
+							 </div>
+							<div class="col-sm-4 d-grid">
+								<button sec:authorize="hasRole('ROLE_ADMIN')"
+										type="button" class="btn btn-outline-primary"
+									onclick="window.location.href='/fish'">Скасувати</button>
+							</div>
+						</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<div th:replace="~{fragments/scripts}"></div>
+</body>
+</html>

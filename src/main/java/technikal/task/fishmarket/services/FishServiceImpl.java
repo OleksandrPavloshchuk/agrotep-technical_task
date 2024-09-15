@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import technikal.task.fishmarket.models.Fish;
 import technikal.task.fishmarket.models.FishDto;
 import technikal.task.fishmarket.models.FishPicture;
+import technikal.task.fishmarket.models.FishPictureDto;
 
 @Service
 public class FishServiceImpl implements FishService {
@@ -47,8 +48,7 @@ public class FishServiceImpl implements FishService {
   public void deleteFish(int fishId) {
     fishRepo.findById(fishId).ifPresent(fish -> {
       deleteFishPictures(fish);
-      fish.getPictures().forEach(pic ->
-          fishPictureRepo.delete(pic));
+      fish.getPictures().forEach(fishPictureRepo::delete);
       fishRepo.delete(fish);
     });
   }
@@ -67,6 +67,21 @@ public class FishServiceImpl implements FishService {
       // Save the 1st fish picture:
       FishPicture fishPicture = createFishPicture(fish, storedFileName);
       fishPictureRepo.save(fishPicture);
+    });
+  }
+
+  @Override
+  public Optional<Fish> findFishById(int fishId) {
+    return fishRepo.findById(fishId);
+  }
+
+  @Override
+  public void addFishPicture(FishPictureDto fishPictureDto) {
+    saveFile(fishPictureDto.getImageFile(), new Date()).ifPresent(storedFileName -> {
+      findFishById(fishPictureDto.getFishId()).ifPresent(fish -> {
+        FishPicture fishPicture = createFishPicture(fish, storedFileName);
+        fishPictureRepo.save(fishPicture);
+      });
     });
   }
 
@@ -93,7 +108,7 @@ public class FishServiceImpl implements FishService {
             StandardCopyOption.REPLACE_EXISTING);
       }
     } catch (IOException ex) {
-      LOGGER.log(Level.SEVERE, "can't save file: " + storageFileName);
+      LOGGER.log(Level.SEVERE, "can't save file: {}", storageFileName);
       return Optional.empty();
     }
 
@@ -111,7 +126,7 @@ public class FishServiceImpl implements FishService {
       Path imagePath = Paths.get(filesUploadDir + "/" + imageFileName);
       Files.delete(imagePath);
     } catch (IOException ex) {
-      LOGGER.log(Level.SEVERE, "can't delete file: " + imageFileName);
+      LOGGER.log(Level.SEVERE, "can't delete file: {}", imageFileName);
     }
   }
 
