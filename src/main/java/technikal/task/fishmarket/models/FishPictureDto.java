@@ -8,6 +8,15 @@ public class FishPictureDto {
   private String fishName;
   private MultipartFile imageFile;
 
+  public FishPictureDto() {
+
+  }
+
+  public FishPictureDto(int fishId, String fishName) {
+    this.fishId = fishId;
+    this.fishName = fishName;
+  }
+
   public int getFishId() {
     return fishId;
   }

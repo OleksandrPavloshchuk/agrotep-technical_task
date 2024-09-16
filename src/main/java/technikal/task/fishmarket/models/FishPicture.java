@@ -21,6 +21,15 @@ public class FishPicture {
 
   private String imageFileName;
 
+  public FishPicture() {
+
+  }
+
+  public FishPicture(Fish fish, String imageFileName) {
+    this.fish = fish;
+    this.imageFileName = imageFileName;
+  }
+
   public int getId() {
     return id;
   }

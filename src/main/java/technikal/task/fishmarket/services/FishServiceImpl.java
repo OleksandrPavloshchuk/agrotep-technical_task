@@ -39,7 +39,7 @@ public class FishServiceImpl implements FishService {
   public void deleteFish(int fishId) {
     fishRepo.findById(fishId).ifPresent(fish -> {
       deleteFishPictures(fish);
-      fish.getPictures().forEach(fishPictureRepo::delete);
+      fishPictureRepo.deleteAll(fish.getPictures());
       fishRepo.delete(fish);
     });
   }
@@ -48,7 +48,6 @@ public class FishServiceImpl implements FishService {
   public void addFish(FishDto fishDto) {
     final Date catchDate = new Date();
     imageStorageService.saveImage(fishDto.getImageFile(), catchDate).ifPresent(storedFileName -> {
-      // We save only the 1st fish image while creation:
       Fish fish = new Fish();
       fish.setCatchDate(catchDate);
       fish.setName(fishDto.getName());
@@ -56,8 +55,7 @@ public class FishServiceImpl implements FishService {
       fish = fishRepo.save(fish);
 
       // Save the 1st fish picture:
-      FishPicture fishPicture = createFishPicture(fish, storedFileName);
-      fishPictureRepo.save(fishPicture);
+      fishPictureRepo.save(new FishPicture(fish, storedFileName));
     });
   }
 
@@ -68,18 +66,13 @@ public class FishServiceImpl implements FishService {
 
   @Override
   public void addFishPicture(FishPictureDto fishPictureDto) {
-    imageStorageService.saveImage(fishPictureDto.getImageFile(), new Date())
-        .ifPresent(storedFileName -> findFishById(fishPictureDto.getFishId())
-            .ifPresent(fish ->
-                fishPictureRepo.save(createFishPicture(fish, storedFileName))
-            ));
-  }
-
-  private FishPicture createFishPicture(Fish fish, String fileName) {
-    FishPicture result = new FishPicture();
-    result.setFish(fish);
-    result.setImageFileName(fileName);
-    return result;
+    findFishById(fishPictureDto.getFishId())
+        .ifPresent(fish ->
+            // Fish exists
+            imageStorageService.saveImage(fishPictureDto.getImageFile(), new Date())
+                .ifPresent(storedFileName ->
+                    // Image file is successfully saved
+                    fishPictureRepo.save(new FishPicture(fish, storedFileName))));
   }
 
   private void deleteFishPictures(Fish fish) {
