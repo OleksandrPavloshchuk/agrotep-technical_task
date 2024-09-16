@@ -81,7 +81,7 @@ class FishServiceImplUnitTest {
     verify(fishRepo).delete(fishCaptor.capture());
     Assertions.assertThat(fishCaptor.getValue()).isEqualTo(fish);
     verify(imageStorageService, times(2)).deleteImage(any(String.class));
-    verify(fishPictureRepo, times(2)).delete(any(FishPicture.class));
+    verify(fishPictureRepo).deleteAll(any(Iterable.class));
   }
 
   @Test
