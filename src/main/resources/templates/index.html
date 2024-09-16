@@ -34,7 +34,7 @@
       <td>
         <th:block th:each="picture : ${fish.pictures}">
           <div class="image-container">
-            <img th:src="@{'images/'+${picture.imageFileName}}" alt="..." width="100">
+            <img th:src="@{/fish/picture(id=${picture.id})}" alt="..." width="100" />
           </div>
         </th:block>
       </td>

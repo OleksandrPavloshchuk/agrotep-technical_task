@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import technikal.task.fishmarket.models.Fish;
 import technikal.task.fishmarket.models.FishDto;
+import technikal.task.fishmarket.models.FishPicture;
 import technikal.task.fishmarket.models.FishPictureDto;
 
 public interface FishService {
@@ -17,4 +18,6 @@ public interface FishService {
   Optional<Fish> findFishById(int fishId);
 
   void addFishPicture(FishPictureDto fishPictureDto);
+
+  Optional<FishPicture> findFishPictureById(int fishPictureId);
 }

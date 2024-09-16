@@ -1,11 +1,17 @@
 package technikal.task.fishmarket.services;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.sql.rowset.serial.SerialBlob;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import technikal.task.fishmarket.models.Fish;
 import technikal.task.fishmarket.models.FishDto;
 import technikal.task.fishmarket.models.FishPicture;
@@ -14,20 +20,18 @@ import technikal.task.fishmarket.models.FishPictureDto;
 @Service
 public class FishServiceImpl implements FishService {
 
+  private static final Logger LOGGER = Logger.getAnonymousLogger();
+
   private final FishRepository fishRepo;
 
   private final FishPictureRepository fishPictureRepo;
 
-  private final ImageStorageService imageStorageService;
-
   @Autowired
   public FishServiceImpl(
       FishRepository fishRepo,
-      FishPictureRepository fishPictureRepo,
-      ImageStorageService imageStorageService) {
+      FishPictureRepository fishPictureRepo) {
     this.fishRepo = fishRepo;
     this.fishPictureRepo = fishPictureRepo;
-    this.imageStorageService = imageStorageService;
   }
 
   @Override
@@ -38,7 +42,6 @@ public class FishServiceImpl implements FishService {
   @Override
   public void deleteFish(int fishId) {
     fishRepo.findById(fishId).ifPresent(fish -> {
-      deleteFishPictures(fish);
       fishPictureRepo.deleteAll(fish.getPictures());
       fishRepo.delete(fish);
     });
@@ -46,17 +49,14 @@ public class FishServiceImpl implements FishService {
 
   @Override
   public void addFish(FishDto fishDto) {
-    final Date catchDate = new Date();
-    imageStorageService.saveImage(fishDto.getImageFile(), catchDate).ifPresent(storedFileName -> {
-      Fish fish = new Fish();
-      fish.setCatchDate(catchDate);
-      fish.setName(fishDto.getName());
-      fish.setPrice(fishDto.getPrice());
-      fish = fishRepo.save(fish);
+    Fish fish = new Fish();
+    fish.setCatchDate(new Date());
+    fish.setName(fishDto.getName());
+    fish.setPrice(fishDto.getPrice());
+    fish = fishRepo.save(fish);
 
-      // Save the 1st fish picture:
-      fishPictureRepo.save(new FishPicture(fish, storedFileName));
-    });
+    // Save the 1st fish picture:
+    createFishPicture(fish, fishDto.getImageFile()).ifPresent(fishPictureRepo::save);
   }
 
   @Override
@@ -67,18 +67,30 @@ public class FishServiceImpl implements FishService {
   @Override
   public void addFishPicture(FishPictureDto fishPictureDto) {
     findFishById(fishPictureDto.getFishId())
-        .ifPresent(fish ->
-            // Fish exists
-            imageStorageService.saveImage(fishPictureDto.getImageFile(), new Date())
-                .ifPresent(storedFileName ->
-                    // Image file is successfully saved
-                    fishPictureRepo.save(new FishPicture(fish, storedFileName))));
+        .flatMap(
+            fish -> createFishPicture(fish, fishPictureDto.getImageFile()))
+        .ifPresent(fishPictureRepo::save);
   }
 
-  private void deleteFishPictures(Fish fish) {
-    fish.getPictures().forEach(
-        fishPicture -> imageStorageService.deleteImage(fishPicture.getImageFileName())
-    );
+  @Override
+  public Optional<FishPicture> findFishPictureById(int fishPictureId) {
+    return fishPictureRepo.findById(fishPictureId);
+  }
+
+  private Optional<FishPicture> createFishPicture(Fish fish, MultipartFile imageFile) {
+
+    try {
+      FishPicture result = new FishPicture();
+      result.setFish(fish);
+      result.setImageFileName(imageFile.getOriginalFilename());
+      result.setContentType(imageFile.getContentType());
+      result.setContentSize(imageFile.getSize());
+      result.setContent(new SerialBlob(imageFile.getBytes()));
+      return Optional.of(result);
+    } catch (SQLException | IOException ex) {
+      LOGGER.log(Level.SEVERE, "can't create fish picture", ex);
+      return Optional.empty();
+    }
   }
 
 }

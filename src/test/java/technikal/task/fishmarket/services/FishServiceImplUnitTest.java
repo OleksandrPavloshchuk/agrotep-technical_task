@@ -1,13 +1,11 @@
 package technikal.task.fishmarket.services;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import java.util.Date;
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import org.assertj.core.api.Assertions;
@@ -34,9 +32,6 @@ class FishServiceImplUnitTest {
   private FishPictureRepository fishPictureRepo;
 
   @Mock
-  private ImageStorageService imageStorageService;
-
-  @Mock
   private MultipartFile imageFile;
 
   private AutoCloseable autoCloseable;
@@ -53,7 +48,7 @@ class FishServiceImplUnitTest {
 
   @Test
   void getFishList() {
-    FishService fishService = new FishServiceImpl(fishRepo, fishPictureRepo, imageStorageService);
+    FishService fishService = new FishServiceImpl(fishRepo, fishPictureRepo);
     fishService.getFishList();
     ArgumentCaptor<Sort> sortCaptor = ArgumentCaptor.forClass(Sort.class);
     verify(fishRepo).findAll(sortCaptor.capture());
@@ -62,48 +57,45 @@ class FishServiceImplUnitTest {
   }
 
   @Test
-  public void findFishById() {
-    FishService fishService = new FishServiceImpl(fishRepo, fishPictureRepo, imageStorageService);
+  void findFishById() {
+    FishService fishService = new FishServiceImpl(fishRepo, fishPictureRepo);
     fishService.findFishById(7001);
     ArgumentCaptor<Integer> idCaptor = ArgumentCaptor.forClass(Integer.class);
     verify(fishRepo).findById(idCaptor.capture());
-    Assertions.assertThat(7001).isEqualTo(idCaptor.getValue());
+    Assertions.assertThat(idCaptor.getValue()).isEqualTo(7001);
   }
 
   @Test
   void deleteFishIfFound() {
     Fish fish = new Fish();
     fish.setPictures(List.of(createPicture("1"), createPicture("2")));
-    doReturn(Optional.of(fish)).when(fishRepo).findById(eq(4));
-    FishService fishService = new FishServiceImpl(fishRepo, fishPictureRepo, imageStorageService);
+    doReturn(Optional.of(fish)).when(fishRepo).findById(4);
+    FishService fishService = new FishServiceImpl(fishRepo, fishPictureRepo);
     fishService.deleteFish(4);
     ArgumentCaptor<Fish> fishCaptor = ArgumentCaptor.forClass(Fish.class);
     verify(fishRepo).delete(fishCaptor.capture());
     Assertions.assertThat(fishCaptor.getValue()).isEqualTo(fish);
-    verify(imageStorageService, times(2)).deleteImage(any(String.class));
     verify(fishPictureRepo).deleteAll(any(Iterable.class));
   }
 
   @Test
   void deleteFishIfNotFound() {
-    doReturn(Optional.empty()).when(fishRepo).findById(eq(4));
-    FishService fishService = new FishServiceImpl(fishRepo, fishPictureRepo, imageStorageService);
+    doReturn(Optional.empty()).when(fishRepo).findById(4);
+    FishService fishService = new FishServiceImpl(fishRepo, fishPictureRepo);
     fishService.deleteFish(100);
     verify(fishRepo, never()).delete(any(Fish.class));
-    verify(imageStorageService, never()).deleteImage(any(String.class));
     verify(fishPictureRepo, never()).delete(any(FishPicture.class));
   }
 
   @Test
-  void addFish() {
-    doReturn(Optional.of("save image"))
-        .when(imageStorageService)
-        .saveImage(any(MultipartFile.class), any(Date.class));
+  void addFish() throws IOException {
+    doReturn(new byte[0]).when(imageFile).getBytes();
+    doReturn("save image").when(imageFile).getOriginalFilename();
     FishDto fishDto = new FishDto();
     fishDto.setImageFile(imageFile);
     fishDto.setPrice(8);
     fishDto.setName("some fish");
-    FishService fishService = new FishServiceImpl(fishRepo, fishPictureRepo, imageStorageService);
+    FishService fishService = new FishServiceImpl(fishRepo, fishPictureRepo);
     fishService.addFish(fishDto);
     ArgumentCaptor<Fish> fishCaptor = ArgumentCaptor.forClass(Fish.class);
     verify(fishRepo).save(fishCaptor.capture());
@@ -120,15 +112,14 @@ class FishServiceImplUnitTest {
   }
 
   @Test
-  void addFishPicture() {
-    doReturn(Optional.of("save another image"))
-        .when(imageStorageService)
-        .saveImage(any(MultipartFile.class), any(Date.class));
+  void addFishPicture() throws IOException {
     doReturn(Optional.of(new Fish())).when(fishRepo).findById(any(Integer.class));
+    doReturn(new byte[0]).when(imageFile).getBytes();
+    doReturn("save another image").when(imageFile).getOriginalFilename();
     FishPictureDto fishPictureDto = new FishPictureDto();
     fishPictureDto.setImageFile(imageFile);
     fishPictureDto.setFishId(8910);
-    FishService fishService = new FishServiceImpl(fishRepo, fishPictureRepo, imageStorageService);
+    FishService fishService = new FishServiceImpl(fishRepo, fishPictureRepo);
     fishService.addFishPicture(fishPictureDto);
     verify(fishRepo, never()).save(any(Fish.class));
 
