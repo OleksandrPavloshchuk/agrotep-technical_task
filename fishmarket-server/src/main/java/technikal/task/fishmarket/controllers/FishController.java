@@ -9,7 +9,6 @@ import jakarta.validation.Valid;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.InputStreamSource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -93,15 +92,9 @@ public class FishController {
 
   @GetMapping("/picture")
   public ResponseEntity<?> getPicture(@RequestParam int id) {
-    Optional<FishPicture> fishPictureOpt = fishService.findFishPictureById(id);
-    if (fishPictureOpt.isPresent()) {
-      Optional<ResponseEntity<InputStreamSource>> responseOpt = toResponseEntity(
-          fishPictureOpt.get());
-      if (responseOpt.isPresent()) {
-        return responseOpt.get();
-      }
-    }
-    return ResponseEntity.notFound().build();
+    return fishService.findFishPictureById(id)
+        .map(this::toResponseEntity)
+        .orElse(ResponseEntity.notFound().build());
   }
 
   private boolean isFileEmpty(MultipartFile imageFile, BindingResult result) {
@@ -112,13 +105,14 @@ public class FishController {
     return result.hasErrors();
   }
 
-  private Optional<ResponseEntity<InputStreamSource>> toResponseEntity(FishPicture fishPicture) {
+  private ResponseEntity<?> toResponseEntity(FishPicture fishPicture) {
     return new BlobToInputStreamConvertor(fishPicture.getContent()).toInputStream()
         .map(InputStreamResource::new)
         .map(inputStream -> ResponseEntity.ok()
             .contentLength(fishPicture.getContentSize())
             .header("Content-Type", fishPicture.getContentType())
-            .body(inputStream));
+            .body(inputStream))
+        .orElse(ResponseEntity.noContent().build());
   }
 
 }
