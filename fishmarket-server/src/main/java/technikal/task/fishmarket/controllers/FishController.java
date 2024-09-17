@@ -6,7 +6,6 @@ import static technikal.task.fishmarket.controllers.ApplicationPage.LIST_OF_FISH
 import static technikal.task.fishmarket.controllers.ApplicationPage.REDIRECT_TO_LIST_OF_FISHES;
 
 import jakarta.validation.Valid;
-import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
-import technikal.task.fishmarket.models.Fish;
 import technikal.task.fishmarket.models.FishDto;
 import technikal.task.fishmarket.models.FishPicture;
 import technikal.task.fishmarket.models.FishPictureDto;
@@ -70,14 +68,12 @@ public class FishController {
 
   @GetMapping("/addPicture")
   public String showAddPicturePage(@RequestParam int fishId, Model model) {
-    Optional<Fish> fishOpt = fishService.findFishById(fishId);
-    if (fishOpt.isPresent()) {
-      model.addAttribute(MODEL_ATTR_FISH_PICTURE_DTO,
-          new FishPictureDto(fishId, fishOpt.get().getName()));
-      return FORM_ADD_PICTURE.getValue();
-    } else {
-      return REDIRECT_TO_LIST_OF_FISHES.getValue();
-    }
+    return fishService.findFishById(fishId).stream()
+        .peek( fish -> model.addAttribute(MODEL_ATTR_FISH_PICTURE_DTO,
+            new FishPictureDto(fishId, fish.getName())))
+        .map(fish -> FORM_ADD_PICTURE.getValue())
+        .findFirst()
+        .orElse(REDIRECT_TO_LIST_OF_FISHES.getValue());
   }
 
   @PostMapping("/addPicture")
